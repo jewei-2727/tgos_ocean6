@@ -64,7 +64,7 @@ var csvData = [];
 var markers = {};
 var phChart = null, doChart = null;
 
-// 14 個漁港座標 (TWD97)
+// 新座標 (TWD97)
 var portsCoords = {
     "梗枋漁港": { x: 337764.335, y: 2755398.563 },
     "烏石港": { x: 334239.940, y: 27550843.053 },
@@ -131,6 +131,7 @@ function createMarkers() {
             document.getElementById('currentPort').textContent = name;
             document.getElementById('portSelect').value = name;
             map.setCenter(pt);
+            map.setZoom(15); // 點選後放大聚焦
             drawChartsForPort(name);
         });
     });
@@ -140,7 +141,10 @@ function onPortChange() {
     var name = document.getElementById('portSelect').value;
     if (!name) return;
     document.getElementById('currentPort').textContent = name;
-    if (markers[name]) map.setCenter(markers[name].getPosition());
+    if (markers[name]) {
+        map.setCenter(markers[name].getPosition());
+        map.setZoom(15); // 下拉選單也放大聚焦
+    }
     drawChartsForPort(name);
 }
 
@@ -172,6 +176,4 @@ function drawChartsForPort(portName) {
 }
 </script>
 </body>
-
 </html>
-
