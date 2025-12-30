@@ -1,40 +1,40 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <meta charset="utf-8" />
-    <title>宜蘭漁港水質監測系統</title>
+<meta charset="utf-8">
+<title>宜蘭漁港水質監測系統</title>
 
-    <!-- TGOS Map API -->
-    <script type="text/javascript" 
-        src="https://api.tgos.tw/TGOS_API/tgos?ver=2&AppID=x+JLVSx85Lk=&APIKey=in8W74q0ogpcfW/STwicK8D5QwCdddJf05/7nb+OtDh8R99YN3T0LurV4xato3TpL/fOfylvJ9Wv/khZEsXEWxsBmg+GEj4AuokiNXCh14Rei21U5GtJpIkO++Mq3AguFK/ISDEWn4hMzqgrkxNe1Q==" 
-        charset="utf-8"></script>
+<!-- TGOS Map API -->
+<script type="text/javascript" 
+    src="https://api.tgos.tw/TGOS_API/tgos?ver=2&AppID=x+JLVSx85Lk=&APIKey=in8W74q0ogpcfW/STwicK8D5QwCdddJf05/7nb+OtDh8R99YN3T0LurV4xato3TpL/fOfylvJ9Wv/khZEsXEWxsBmg+GEj4AuokiNXCh14Rei21U5GtJpIkO++Mq3AguFK/ISDEWn4hMzqgrkxNe1Q==" 
+    charset="utf-8"></script>
 
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <!-- PapaParse -->
-    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+<!-- PapaParse -->
+<script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
 
-    <style>
-        body { margin:0; font-family:"Microsoft JhengHei", sans-serif; display:flex; height:100vh; width:100vw; overflow:hidden; }
-        #MapDiv { flex:1; height:100%; }
-        #controlPanel {
-            width:400px;
-            height:100%;
-            background:#fff;
-            padding:20px;
-            box-sizing:border-box;
-            overflow-y:auto;
-            border-left:1px solid #ccc;
-        }
-        h3 { color:#1a73e8; border-bottom:2px solid #1a73e8; padding-bottom:8px; margin-top:0; }
-        .row { margin-bottom:20px; }
-        select, button { width:100%; padding:8px; font-size:16px; }
-        .chart-container { position:relative; height:200px; width:100%; margin-bottom:20px; }
-    </style>
+<style>
+body { margin:0; font-family:"Microsoft JhengHei", sans-serif; display:flex; height:100vh; width:100vw; overflow:hidden; }
+#MapDiv { flex:1; height:100%; }
+#controlPanel {
+    width:400px;
+    height:100%;
+    background:#fff;
+    padding:20px;
+    box-sizing:border-box;
+    overflow-y:auto;
+    border-left:1px solid #ccc;
+}
+h3 { color:#1a73e8; border-bottom:2px solid #1a73e8; padding-bottom:8px; margin-top:0; }
+.row { margin-bottom:20px; }
+select, button { width:100%; padding:8px; font-size:16px; }
+.chart-container { position:relative; height:200px; width:100%; margin-bottom:20px; }
+</style>
 </head>
-<body onload="InitAll();">
 
+<body onload="InitAll();">
     <div id="MapDiv"></div>
 
     <div id="controlPanel">
@@ -64,14 +64,14 @@ var csvData = [];
 var markers = {};
 var phChart = null, doChart = null;
 
-// 新座標 (TWD97)
+// 14 個漁港座標 (TWD97)
 var portsCoords = {
     "梗枋漁港": { x: 337764.335, y: 2755398.563 },
     "烏石港": { x: 334239.940, y: 27550843.053 },
     "大溪第一漁港": { x: 340745.390, y: 2759584.125 },
     "大溪第二漁港": { x: 340813.356, y: 2759507.712 },
     "蕃薯寮漁港": { x: 342395.941, y: 2760783.203 },
-    "大里漁港": { x: 343045.640, y: 2761928.031 },
+    "大里漁港": { x: 343045.640, y: 27619286.964 },
     "石城漁港": { x: 346013.905, y: 2763893.910 },
     "桶盤堀漁港": { x: 344532.179, y: 2763169.322 },
     "蘇澳港": { x: 337596.057, y: 2720381.909 },
@@ -108,9 +108,9 @@ function updateDropdown() {
 
 function initMap() {
     var mapDiv = document.getElementById("MapDiv");
-    var startPt = new TGOS.TGPoint(334358.5, 2750928.9); // 預設烏石港
+    var startPt = new TGOS.TGPoint(337764.335, 2755398.563); // 預設梗枋漁港
     map = new TGOS.TGOnlineMap(mapDiv, TGOS.TGCoordSys.EPSG3826, {
-        zoom: 13,
+        zoom: 11,
         navigationControl: true,
         navigationControlOptions: {
             controlPosition: TGOS.TGControlPosition.TOP_LEFT,
@@ -131,28 +131,35 @@ function createMarkers() {
             document.getElementById('currentPort').textContent = name;
             document.getElementById('portSelect').value = name;
             map.setCenter(pt);
-            map.setZoom(15); // 點選後放大聚焦
+            map.setZoom(15);
             drawChartsForPort(name);
         });
     });
 }
 
+// 下拉選單選港口時，地圖放大聚焦
 function onPortChange() {
     var name = document.getElementById('portSelect').value;
     if (!name) return;
     document.getElementById('currentPort').textContent = name;
+
     if (markers[name]) {
-        map.setCenter(markers[name].getPosition());
-        map.setZoom(15); // 下拉選單也放大聚焦
+        var pos = markers[name].getPosition();
+        // 平滑移動中心
+        map.panTo(pos);
+        // 延遲後放大
+        setTimeout(function(){ map.setZoom(15); }, 200);
     }
     drawChartsForPort(name);
 }
 
+// 取得該港口資料並排序
 function getPortData(portName) {
     return csvData.filter(r => String(r.port).trim() === portName)
                   .sort((a,b) => (a.year*100+a.month)-(b.year*100+b.month));
 }
 
+// 畫 pH 與 DO 圖表
 function drawChartsForPort(portName) {
     var rows = getPortData(portName);
     if (!rows || rows.length===0) return;
@@ -177,4 +184,3 @@ function drawChartsForPort(portName) {
 </script>
 </body>
 </html>
-
