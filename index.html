@@ -67,11 +67,11 @@ var phChart = null, doChart = null;
 // 14 個漁港座標 (TWD97)
 var portsCoords = {
     "梗枋漁港": { x: 337764.335, y: 2755398.563 },
-    "烏石港": { x: 334239.940, y: 2750843.053 },
+    "烏石港": { x: 334239.940, y: 27550843.053 },
     "大溪第一漁港": { x: 340745.390, y: 2759584.125 },
     "大溪第二漁港": { x: 340813.356, y: 2759507.712 },
     "蕃薯寮漁港": { x: 342395.941, y: 2760783.203 },
-    "大里漁港": { x: 343045.640, y: 2761928.964 },
+    "大里漁港": { x: 343045.640, y: 27619286.964 },
     "石城漁港": { x: 346013.905, y: 2763893.910 },
     "桶盤堀漁港": { x: 344532.179, y: 2763169.322 },
     "蘇澳港": { x: 337596.057, y: 2720381.909 },
@@ -108,7 +108,8 @@ function updateDropdown() {
 
 function initMap() {
     var mapDiv = document.getElementById("MapDiv");
-    var startPt = new TGOS.TGPoint(337764.335, 2755398.563); // 預設梗枋漁港
+    // 預設中心可放在梗枋漁港或整個宜蘭地區
+    var startPt = new TGOS.TGPoint(337764.335, 2755398.563);
     map = new TGOS.TGOnlineMap(mapDiv, TGOS.TGCoordSys.EPSG3826, {
         zoom: 11,
         navigationControl: true,
@@ -131,13 +132,12 @@ function createMarkers() {
             document.getElementById('currentPort').textContent = name;
             document.getElementById('portSelect').value = name;
             map.setCenter(pt);
-            map.setZoom(15);
+            map.setZoom(15); // 點擊 marker 放大
             drawChartsForPort(name);
         });
     });
 }
 
-// 下拉選單選港口時，地圖放大聚焦
 function onPortChange() {
     var name = document.getElementById('portSelect').value;
     if (!name) return;
@@ -145,10 +145,8 @@ function onPortChange() {
 
     if (markers[name]) {
         var pos = markers[name].getPosition();
-        // 平滑移動中心
-        map.panTo(pos);
-        // 延遲後放大
-        setTimeout(function(){ map.setZoom(15); }, 200);
+        map.setCenter(pos);
+        map.setZoom(15); // 下拉選單放大
     }
     drawChartsForPort(name);
 }
@@ -184,4 +182,3 @@ function drawChartsForPort(portName) {
 </script>
 </body>
 </html>
-
